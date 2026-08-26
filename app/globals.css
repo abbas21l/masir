@@ -1,0 +1,94 @@
+@import url('https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-vazir: 'Vazirmatn', Tahoma, sans-serif;
+  --font-jetbrains: 'JetBrains Mono', monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #FBF9F4;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(26,139,127,0.07) 1px, transparent 0);
+  background-size: 22px 22px;
+  color: #1A1A1A;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Signature element: the path/trail connecting stage waypoints */
+.trail {
+  position: relative;
+}
+.trail::before {
+  content: '';
+  position: absolute;
+  top: 28px;
+  bottom: 28px;
+  right: 27px;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #1A8B7F 0px,
+    #1A8B7F 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  z-index: 0;
+}
+@media (max-width: 640px) {
+  .trail::before { right: 21px; }
+}
+
+.waypoint {
+  position: relative;
+  z-index: 1;
+}
+.waypoint-marker {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  background: #FBF9F4;
+  border: 2.5px solid #1A8B7F;
+  color: #14746A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-jetbrains);
+  font-weight: 700;
+  font-size: 20px;
+  box-shadow: 0 0 0 6px #FBF9F4;
+}
+@media (max-width: 640px) {
+  .waypoint-marker { width: 44px; height: 44px; font-size: 16px; }
+}
+
+.waypoint-marker.finish {
+  background: #C98A2C;
+  border-color: #C98A2C;
+  color: white;
+}
+
+/* Focus visibility (accessibility) */
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid #1A8B7F;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease both; }
