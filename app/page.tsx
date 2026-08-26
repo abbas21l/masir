@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-type Resource = { name: string; type: string; language: string };
+type Resource = { name: string; type: string; language: string; url?: string };
 type Step = {
   title: string;
   goal: string;
@@ -22,6 +22,18 @@ type SavedPath = LearningPath & { id: string; savedAt: number };
 
 const LEVELS = ['مبتدی', 'متوسط', 'پیشرفته'] as const;
 const SUGGESTIONS = ['یادگیری پایتون', 'مدیریت زمان', 'نوشتن پروپوزال', 'هوش مصنوعی برای مدیران', 'رهبری تیم'];
+
+// If a resource doesn't have a real, verified url (true for most AI-generated
+// paths, since we deliberately never let the model claim a specific URL),
+// build a safe search link instead — always works, never hallucinated.
+function resourceLink(r: Resource): string {
+  if (r.url) return r.url;
+  const isVideo = r.type.includes('ویدیو') || r.type.includes('یوتیوب');
+  const query = encodeURIComponent(r.name);
+  return isVideo
+    ? `https://www.youtube.com/results?search_query=${query}`
+    : `https://www.google.com/search?q=${query}`;
+}
 
 export default function Home() {
   const [topic, setTopic] = useState('');
@@ -233,7 +245,19 @@ export default function Home() {
                           {step.resources.map((r, ri) => (
                             <li key={ri} className="flex items-start gap-2 text-grey-700">
                               <span className="text-teal mt-0.5">•</span>
-                              <span>{r.name} <span className="text-grey-400">({r.type} · {r.language})</span></span>
+                              <span>
+                                <a
+                                  href={resourceLink(r)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-teal-dark underline decoration-teal/30 hover:decoration-teal"
+                                >
+                                  {r.name}
+                                </a>{' '}
+                                <span className="text-grey-400">
+                                  ({r.type} · {r.language}{!r.url && ' · جست‌وجو'})
+                                </span>
+                              </span>
                             </li>
                           ))}
                         </ul>

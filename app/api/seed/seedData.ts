@@ -1,4 +1,4 @@
-export type Resource = { name: string; type: string; language: string };
+export type Resource = { name: string; type: string; language: string; url?: string };
 export type Step = {
   title: string;
   goal: string;
@@ -32,7 +32,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'نصب پایتون از سایت رسمی، نصب VS Code، اجرای اولین خط کد از ترمینال.',
           why_it_matters: 'بدون محیط درست، حتی ساده‌ترین تمرین‌ها با خطاهای فنی وقت‌گیر می‌شن و انگیزه رو می‌کشن.',
           resources: [
-            { name: 'مستندات رسمی نصب پایتون', type: 'مستندات', language: 'انگلیسی' },
+            { name: 'مستندات رسمی نصب پایتون', type: 'مستندات', language: 'انگلیسی', url: 'https://www.python.org/downloads/' },
             { name: 'راهنمای شروع کار با VS Code برای پایتون', type: 'مستندات رسمی', language: 'انگلیسی' },
           ],
           expected_outcome: 'بتونی یه فایل .py بسازی و از طریق ترمینال اجراش کنی.',
@@ -43,7 +43,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'متغیرها، انواع داده (عدد، رشته، بولین)، عملگرها، ورودی و خروجی ساده.',
           why_it_matters: 'این‌ها واژگان پایه‌ی برنامه‌نویسی‌ان؛ بدونشون هیچ منطقی قابل نوشتن نیست.',
           resources: [
-            { name: 'freeCodeCamp - Python for Beginners', type: 'دوره‌ی ویدیویی رایگان', language: 'انگلیسی' },
+            { name: 'freeCodeCamp - Python for Beginners', type: 'دوره‌ی ویدیویی رایگان', language: 'انگلیسی', url: 'https://www.freecodecamp.org/' },
             { name: 'دوره‌های مقدماتی پایتون در پلتفرم‌هایی مثل مکتب‌خونه', type: 'دوره', language: 'فارسی' },
           ],
           expected_outcome: 'بتونی برنامه‌ای بنویسی که از کاربر اسم بگیره و پیام شخصی‌سازی‌شده چاپ کنه.',
@@ -54,8 +54,8 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'دستور if/else، حلقه‌های for و while.',
           why_it_matters: 'این‌ها قلب منطق برنامه‌نویسی‌ان؛ بدونشون نمی‌تونی مسئله‌ی واقعی حل کنی.',
           resources: [
-            { name: 'Real Python - Conditional Statements', type: 'مقاله‌ی آموزشی', language: 'انگلیسی' },
-            { name: 'مستندات رسمی پایتون - بخش کنترل جریان', type: 'مستندات', language: 'انگلیسی' },
+            { name: 'Real Python - Conditional Statements', type: 'مقاله‌ی آموزشی', language: 'انگلیسی', url: 'https://realpython.com/' },
+            { name: 'مستندات رسمی پایتون - بخش کنترل جریان', type: 'مستندات', language: 'انگلیسی', url: 'https://docs.python.org/3/tutorial/controlflow.html' },
           ],
           expected_outcome: 'بتونی برنامه‌ی حدس‌زدن عدد بنویسی که تا جواب درست حلقه بزنه.',
         },
@@ -65,7 +65,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'لیست‌ها، دیکشنری‌ها، تاپل‌ها و عملیات پایه روی هرکدوم.',
           why_it_matters: 'تقریباً هیچ برنامه‌ی واقعی‌ای نیست که فقط با متغیرهای تکی کار کنه.',
           resources: [
-            { name: 'Real Python - Python Data Structures', type: 'مقاله‌ی آموزشی', language: 'انگلیسی' },
+            { name: 'Real Python - Python Data Structures', type: 'مقاله‌ی آموزشی', language: 'انگلیسی', url: 'https://realpython.com/' },
             { name: 'پلی‌لیست آموزش ساختمان داده در پایتون در یوتیوب', type: 'ویدیو', language: 'فارسی' },
           ],
           expected_outcome: 'بتونی لیستی از اسامی بگیری و بدون تکرار مرتبش کنی.',
@@ -76,7 +76,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'تعریف تابع، پارامتر، مقدار بازگشتی، مفهوم scope.',
           why_it_matters: 'بدون توابع، کد تکراری و غیرقابل‌نگهداری می‌شه.',
           resources: [
-            { name: 'Real Python - Defining Your Own Python Function', type: 'مقاله‌ی آموزشی', language: 'انگلیسی' },
+            { name: 'Real Python - Defining Your Own Python Function', type: 'مقاله‌ی آموزشی', language: 'انگلیسی', url: 'https://realpython.com/' },
           ],
           expected_outcome: 'بتونی ماشین‌حساب ساده‌ای با چند تابع جدا (جمع، تفریق، ضرب) بسازی.',
         },
@@ -86,7 +86,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'چطور یه مسئله رو بشکنی به قطعات کوچیک‌تر و حلشون کنی.',
           why_it_matters: 'یادگیری بدون ساختن فراموش می‌شه؛ پروژه‌ی واقعی دانش رو تثبیت می‌کنه.',
           resources: [
-            { name: 'freeCodeCamp - Python Project Ideas for Beginners', type: 'مقاله', language: 'انگلیسی' },
+            { name: 'freeCodeCamp - Python Project Ideas for Beginners', type: 'مقاله', language: 'انگلیسی', url: 'https://www.freecodecamp.org/' },
           ],
           expected_outcome: 'یه برنامه‌ی کامل، هرچند ساده، که از صفر خودت ساختی (مثل مدیریت لیست کارها در ترمینال).',
         },
@@ -118,7 +118,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'تفاوت فوری/مهم، مفهوم تمرکز عمیق، هزینه‌ی جابه‌جایی بین کارها.',
           why_it_matters: 'بدون این واژگان پایه، تکنیک‌های بعدی بی‌معنا می‌مونن.',
           resources: [
-            { name: 'Harvard Business Review - مقالات حوزه‌ی بهره‌وری', type: 'مقاله', language: 'انگلیسی' },
+            { name: 'Harvard Business Review - مقالات حوزه‌ی بهره‌وری', type: 'مقاله', language: 'انگلیسی', url: 'https://hbr.org/' },
           ],
           expected_outcome: 'بتونی فرق کار فوری و کار مهم رو در نگاه اول تشخیص بدی.',
         },
@@ -250,7 +250,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'تفاوت هوش مصنوعی مولد (مثل ChatGPT) با اتوماسیون ساده؛ هوش مصنوعی چه کاری خوب انجام می‌ده و چه کاری نه.',
           why_it_matters: 'بدون این تصویر پایه، تصمیم‌های مدیریتی درباره‌ی هوش مصنوعی یا زیادی خوش‌بینانه یا زیادی ترسیده می‌شن.',
           resources: [
-            { name: 'Coursera - AI For Everyone (Andrew Ng)', type: 'دوره‌ی رایگان آنلاین', language: 'انگلیسی (زیرنویس فارسی موجود)' },
+            { name: 'Coursera - AI For Everyone (Andrew Ng)', type: 'دوره‌ی رایگان آنلاین', language: 'انگلیسی (زیرنویس فارسی موجود)', url: 'https://www.coursera.org/learn/ai-for-everyone' },
           ],
           expected_outcome: 'بتونی برای یه همکار غیرفنی، در دو دقیقه توضیح بدی هوش مصنوعی مولد چیه.',
         },
@@ -268,7 +268,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'خلاصه‌سازی گزارش، پیش‌نویس ایمیل و ارتباطات، تحلیل اولیه‌ی داده، تولید محتوا، دستیار تصمیم‌گیری.',
           why_it_matters: 'بدون نقشه‌ی روشن، تیم‌ها یا هوش مصنوعی رو کاملاً نادیده می‌گیرن یا در جاهای نامناسب بهش تکیه می‌کنن.',
           resources: [
-            { name: 'Harvard Business Review - مقالات حوزه‌ی هوش مصنوعی در مدیریت', type: 'مقاله', language: 'انگلیسی' },
+            { name: 'Harvard Business Review - مقالات حوزه‌ی هوش مصنوعی در مدیریت', type: 'مقاله', language: 'انگلیسی', url: 'https://hbr.org/' },
           ],
           expected_outcome: 'یه لیست ۳ تا ۵ موردی از کارهای تیمت داری که کاندید خوبی برای کمک‌گرفتن از هوش مصنوعی‌ان.',
         },
@@ -358,7 +358,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'موضع چیزیه که طرف مقابل می‌خواد؛ منفعت چیزیه که واقعاً بهش نیاز داره. این دو معمولاً فرق دارن.',
           why_it_matters: 'مذاکره‌کننده‌ای که فقط روی موضع تمرکز کنه، فرصت راه‌حل‌های خلاقانه رو از دست می‌ده.',
           resources: [
-            { name: 'Program on Negotiation (Harvard) - مقالات مقدماتی', type: 'مقاله', language: 'انگلیسی' },
+            { name: 'Program on Negotiation (Harvard) - مقالات مقدماتی', type: 'مقاله', language: 'انگلیسی', url: 'https://www.pon.harvard.edu/' },
           ],
           expected_outcome: 'بتونی یه مذاکره‌ی گذشته رو بازبینی کنی و منفعت واقعی طرف مقابل رو (نه فقط موضعش) شناسایی کنی.',
         },
@@ -414,7 +414,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'نوشتن یه بیانیه‌ی ساده از هدف پروژه، خروجی نهایی، و چیزهایی که خارج از دامنه‌ان.',
           why_it_matters: 'بیشتر پروژه‌ها نه به‌خاطر اجرای بد، بلکه به‌خاطر دامنه‌ی نامشخص از اول شکست می‌خورن.',
           resources: [
-            { name: 'PMI.org - مقالات مقدماتی مدیریت پروژه', type: 'مقاله', language: 'انگلیسی' },
+            { name: 'PMI.org - مقالات مقدماتی مدیریت پروژه', type: 'مقاله', language: 'انگلیسی', url: 'https://www.pmi.org/' },
           ],
           expected_outcome: 'یه سند یک‌پاراگرافی داری که هدف و مرز پروژه‌ات رو روشن می‌کنه.',
         },
@@ -470,7 +470,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'مرور SUM، AVERAGE، COUNTIF، IF، و مرتب‌سازی/فیلتر ساده.',
           why_it_matters: 'بدون تسلط به این پایه، تکنیک‌های تحلیلی بعدی گیج‌کننده می‌شن.',
           resources: [
-            { name: 'ExcelJet - Function reference', type: 'مستندات', language: 'انگلیسی' },
+            { name: 'ExcelJet - Function reference', type: 'مستندات', language: 'انگلیسی', url: 'https://exceljet.net/' },
           ],
           expected_outcome: 'بتونی بدون نگاه‌کردن به راهنما، این توابع رو روی یه جدول ساده اجرا کنی.',
         },
@@ -480,7 +480,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'ساخت Pivot Table از یه جدول خام، گروه‌بندی، و محاسبه‌ی مجموع/میانگین بر اساس دسته.',
           why_it_matters: 'Pivot Table سریع‌ترین راه برای تبدیل هزاران ردیف داده به یه خلاصه‌ی قابل‌فهمه.',
           resources: [
-            { name: 'Microsoft Support - Create a PivotTable', type: 'مستندات رسمی', language: 'انگلیسی' },
+            { name: 'Microsoft Support - Create a PivotTable', type: 'مستندات رسمی', language: 'انگلیسی', url: 'https://support.microsoft.com/en-us/excel' },
           ],
           expected_outcome: 'بتونی از یه فایل فروش خام، یه جدول خلاصه‌ی فروش به‌تفکیک ماه و محصول بسازی.',
         },
@@ -490,7 +490,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'پیدا کردن و کشیدن داده از یه جدول به جدول دیگه بر اساس یه ستون مشترک.',
           why_it_matters: 'داده‌های واقعی معمولاً پخش هستن؛ این توابع اجازه می‌دن بدون کپی دستی، به‌هم وصلشون کنی.',
           resources: [
-            { name: 'ExcelJet - XLOOKUP function', type: 'مستندات', language: 'انگلیسی' },
+            { name: 'ExcelJet - XLOOKUP function', type: 'مستندات', language: 'انگلیسی', url: 'https://exceljet.net/' },
           ],
           expected_outcome: 'بتونی اطلاعات مشتری رو از یه جدول جدا، بر اساس کد مشتری به جدول فروش وصل کنی.',
         },
@@ -500,7 +500,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'انتخاب نوع نمودار مناسب (میله‌ای، خطی، دایره‌ای) بر اساس نوع داده.',
           why_it_matters: 'یه نمودار خوب، پیام رو در چند ثانیه منتقل می‌کنه؛ جدول خام این کار رو نمی‌کنه.',
           resources: [
-            { name: 'Microsoft Support - Create a chart', type: 'مستندات رسمی', language: 'انگلیسی' },
+            { name: 'Microsoft Support - Create a chart', type: 'مستندات رسمی', language: 'انگلیسی', url: 'https://support.microsoft.com/en-us/excel' },
           ],
           expected_outcome: 'یه نمودار ساخته‌ای که روند فروش سه ماه اخیر رو در یه نگاه نشون می‌ده.',
         },
@@ -510,7 +510,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'قراردادن چند نمودار و جدول کلیدی در یه صفحه، با فیلترهای تعاملی (Slicer).',
           why_it_matters: 'داشبورد به مدیر اجازه می‌ده بدون دست‌کاری فایل، خودش داده رو کاوش کنه.',
           resources: [
-            { name: 'Microsoft Support - Slicers in Excel', type: 'مستندات رسمی', language: 'انگلیسی' },
+            { name: 'Microsoft Support - Slicers in Excel', type: 'مستندات رسمی', language: 'انگلیسی', url: 'https://support.microsoft.com/en-us/excel' },
           ],
           expected_outcome: 'یه داشبورد یک‌صفحه‌ای با حداقل ۲ نمودار و یه فیلتر تعاملی ساختی.',
         },
