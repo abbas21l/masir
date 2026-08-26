@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { kv } from '@vercel/kv';
+import { getRedis } from '../../lib/redis';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-// Cache generated paths for 90 days — same topic+level won't hit the API again.
 const CACHE_TTL_SECONDS = 60 * 60 * 24 * 90;
 
 function cacheKey(topic: string, level: string): string {
@@ -12,27 +11,22 @@ function cacheKey(topic: string, level: string): string {
   return `masir:path:${level}:${normalized}`;
 }
 
-// Rate limiting: max 8 generations per IP per hour.
-// Uses the same KV store as caching — if KV isn't set up yet,
-// rate limiting is skipped (fails open, doesn't break the app).
 const RATE_LIMIT_MAX = 8;
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 
-async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remaining: number }> {
-  const key = `masir:ratelimit:${ip}`;
+async function checkRateLimit(ip: string): Promise<{ allowed: boolean }> {
+  const redis = getRedis();
+  if (!redis) return { allowed: true };
+
   try {
-    const current = (await kv.get<number>(key)) ?? 0;
-    if (current >= RATE_LIMIT_MAX) {
-      return { allowed: false, remaining: 0 };
+    const key = `masir:ratelimit:${ip}`;
+    const current = await redis.incr(key);
+    if (current === 1) {
+      await redis.expire(key, RATE_LIMIT_WINDOW_SECONDS);
     }
-    const newCount = await kv.incr(key);
-    if (newCount === 1) {
-      await kv.expire(key, RATE_LIMIT_WINDOW_SECONDS);
-    }
-    return { allowed: true, remaining: RATE_LIMIT_MAX - newCount };
+    return { allowed: current <= RATE_LIMIT_MAX };
   } catch {
-    // KV not configured — allow the request through (fail open).
-    return { allowed: true, remaining: RATE_LIMIT_MAX };
+    return { allowed: true };
   }
 }
 
@@ -101,16 +95,17 @@ export async function POST(req: NextRequest) {
     }
 
     const key = cacheKey(topic, level);
+    const redis = getRedis();
 
-    // Check cache first — if this exact topic+level was generated before, reuse it.
-    // If Vercel KV isn't set up yet, this silently falls through (no crash).
-    try {
-      const cached = await kv.get(key);
-      if (cached) {
-        return NextResponse.json({ path: cached, cached: true });
+    if (redis) {
+      try {
+        const cached = await redis.get(key);
+        if (cached) {
+          return NextResponse.json({ path: JSON.parse(cached), cached: true });
+        }
+      } catch {
+        // Redis hiccup — proceed without caching.
       }
-    } catch {
-      // KV not configured yet — proceed without caching, don't break the feature.
     }
 
     const userMessage = `موضوع: ${topic.trim()}\nسطح: ${level}`;
@@ -138,7 +133,6 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
     const rawText = data.content?.find((b: any) => b.type === 'text')?.text ?? '';
 
-    // Strip potential markdown code fences just in case
     const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
 
     let parsed;
@@ -148,11 +142,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'پاسخ مدل قابل‌پردازش نبود. دوباره امتحان کن.' }, { status: 502 });
     }
 
-    // Save to cache for next time — best-effort, never blocks the response.
-    try {
-      await kv.set(key, parsed, { ex: CACHE_TTL_SECONDS });
-    } catch {
-      // KV not configured yet — fine, just skip caching.
+    if (redis) {
+      try {
+        await redis.set(key, JSON.stringify(parsed), 'EX', CACHE_TTL_SECONDS);
+      } catch {
+        // Fine, just skip caching.
+      }
     }
 
     return NextResponse.json({ path: parsed, cached: false });
