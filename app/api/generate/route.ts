@@ -30,6 +30,23 @@ async function checkRateLimit(ip: string): Promise<{ allowed: boolean }> {
   }
 }
 
+// Archives every search (topic + level + timestamp), keeps the last 500,
+// and tallies topic frequency for a "most searched" view.
+// Best-effort — never blocks or breaks the main flow.
+async function logSearch(topic: string, level: string, wasCached: boolean): Promise<void> {
+  const redis = getRedis();
+  if (!redis) return;
+  try {
+    const entry = JSON.stringify({ topic: topic.trim(), level, cached: wasCached, at: Date.now() });
+    await redis.lpush('masir:search:log', entry);
+    await redis.ltrim('masir:search:log', 0, 499);
+    const normalized = topic.trim().toLowerCase().replace(/\s+/g, ' ');
+    await redis.zincrby('masir:search:counts', 1, `${level}:${normalized}`);
+  } catch {
+    // Logging is a nice-to-have, never break the app over it.
+  }
+}
+
 const SYSTEM_PROMPT = `تو یک متخصص طراحی مسیر یادگیری هستی که برای کاربران فارسی‌زبان، مسیرهای یادگیری واقعی، شفاف و قابل‌اجرا طراحی می‌کنی.
 
 قوانین مهم:
@@ -101,6 +118,7 @@ export async function POST(req: NextRequest) {
       try {
         const cached = await redis.get(key);
         if (cached) {
+          await logSearch(topic, level, true);
           return NextResponse.json({ path: JSON.parse(cached), cached: true });
         }
       } catch {
@@ -149,6 +167,8 @@ export async function POST(req: NextRequest) {
         // Fine, just skip caching.
       }
     }
+
+    await logSearch(topic, level, false);
 
     return NextResponse.json({ path: parsed, cached: false });
   } catch (e: any) {

@@ -33,7 +33,7 @@ export const SEED_PATHS: SeedEntry[] = [
           why_it_matters: 'بدون محیط درست، حتی ساده‌ترین تمرین‌ها با خطاهای فنی وقت‌گیر می‌شن و انگیزه رو می‌کشن.',
           resources: [
             { name: 'مستندات رسمی نصب پایتون', type: 'مستندات', language: 'انگلیسی', url: 'https://www.python.org/downloads/' },
-            { name: 'راهنمای شروع کار با VS Code برای پایتون', type: 'مستندات رسمی', language: 'انگلیسی' },
+            { name: 'راهنمای شروع کار با VS Code برای پایتون', type: 'مستندات رسمی', language: 'انگلیسی', url: 'https://code.visualstudio.com/docs/languages/python' },
           ],
           expected_outcome: 'بتونی یه فایل .py بسازی و از طریق ترمینال اجراش کنی.',
         },
@@ -108,7 +108,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'برای ۳ تا ۷ روز، تمام فعالیت‌های روزانه‌ات رو با ساعت دقیق یادداشت کن، بعد دسته‌بندیشون کن.',
           why_it_matters: 'بدون شناخت دقیق وضعیت فعلی، هیچ برنامه‌ریزی‌ای مؤثر نخواهد بود.',
           resources: [
-            { name: 'اپلیکیشن‌های ساده‌ی ردیابی زمان مثل Toggl', type: 'ابزار', language: 'انگلیسی' },
+            { name: 'اپلیکیشن‌های ساده‌ی ردیابی زمان مثل Toggl', type: 'ابزار', language: 'انگلیسی', url: 'https://toggl.com/' },
           ],
           expected_outcome: 'یه گزارش واقعی و دقیق از نحوه‌ی گذران زمان روزانه‌ات داری.',
         },
@@ -148,7 +148,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'نوشتن لیست شب قبل، محدود کردن به ۳ کار اصلی در روز.',
           why_it_matters: 'لیست بلند و غیرواقعی، انگیزه رو می‌کشه؛ لیست کوتاه و واقعی، حس پیشرفت می‌ده.',
           resources: [
-            { name: 'ابزارهای ساده‌ی لیست کار مثل Todoist یا حتی کاغذ', type: 'ابزار', language: 'فارسی/انگلیسی' },
+            { name: 'ابزارهای ساده‌ی لیست کار مثل Todoist یا حتی کاغذ', type: 'ابزار', language: 'فارسی/انگلیسی', url: 'https://todoist.com/' },
           ],
           expected_outcome: 'هر شب لیست ۳ کار اصلی فردا رو آماده داری.',
         },
@@ -432,7 +432,7 @@ export const SEED_PATHS: SeedEntry[] = [
           what_to_learn: 'تخمین زمان هر وظیفه، اضافه‌کردن بافر برای اتفاقات پیش‌بینی‌نشده.',
           why_it_matters: 'جدول زمانی خیلی خوش‌بینانه، از همون هفته‌ی اول عقب می‌افته و اعتماد رو از بین می‌بره.',
           resources: [
-            { name: 'ابزارهای ساده مثل Trello یا Notion برای زمان‌بندی', type: 'ابزار', language: 'انگلیسی' },
+            { name: 'ابزارهای ساده مثل Trello یا Notion برای زمان‌بندی', type: 'ابزار', language: 'انگلیسی', url: 'https://trello.com/' },
           ],
           expected_outcome: 'یه جدول زمانی با تاریخ شروع و پایان برای هر وظیفه‌ی اصلی داری.',
         },
