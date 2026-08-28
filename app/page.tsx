@@ -26,13 +26,32 @@ const SUGGESTIONS = ['یادگیری پایتون', 'مدیریت زمان', 'ن
 // If a resource doesn't have a real, verified url (true for most AI-generated
 // paths, since we deliberately never let the model claim a specific URL),
 // build a safe search link instead — always works, never hallucinated.
-function resourceLink(r: Resource): string {
+function resourceLink(r: Resource, topic?: string): string {
   if (r.url) return r.url;
+
   const isVideo = r.type.includes('ویدیو') || r.type.includes('یوتیوب');
-  const query = encodeURIComponent(r.name);
-  return isVideo
-    ? `https://www.youtube.com/results?search_query=${query}`
-    : `https://www.google.com/search?q=${query}`;
+  const isPersian = r.language.includes('فارسی');
+  const isCourse = r.type.includes('دوره');
+
+  // Include the main topic in the query for better relevance
+  // (a search for just "دوره‌های مقدماتی" is vague; adding the topic fixes that).
+  const queryText = topic ? `${r.name} ${topic}` : r.name;
+  const query = encodeURIComponent(queryText);
+
+  if (isVideo) {
+    return `https://www.youtube.com/results?search_query=${query}`;
+  }
+
+  // Persian course-type resources: bias the search toward known, reputable
+  // Persian learning platforms instead of a generic open search.
+  if (isPersian && isCourse) {
+    const biased = encodeURIComponent(
+      `${queryText} (site:maktabkhooneh.org OR site:quera.org OR site:faradars.org)`
+    );
+    return `https://www.google.com/search?q=${biased}`;
+  }
+
+  return `https://www.google.com/search?q=${query}`;
 }
 
 export default function Home() {
@@ -247,7 +266,7 @@ export default function Home() {
                               <span className="text-teal mt-0.5">•</span>
                               <span>
                                 <a
-                                  href={resourceLink(r)}
+                                  href={resourceLink(r, path.topic)}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-teal-dark underline decoration-teal/30 hover:decoration-teal"
