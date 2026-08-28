@@ -127,7 +127,7 @@ export default function Home() {
       {/* Header */}
       <header className="max-w-2xl mx-auto px-5 pt-10 pb-4 flex items-center justify-between">
         <button onClick={reset} className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-full border-2 border-teal flex items-center justify-center font-mono font-bold text-teal-dark text-sm">م</span>
+          <img src="/logo.svg" alt="مسیر" width="32" height="32" />
           <span className="font-bold text-lg">مسیر</span>
         </button>
         <span className="text-xs text-grey-500">ساخته‌ی عباس رمضانی</span>
