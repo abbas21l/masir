@@ -21,9 +21,12 @@ type LearningPath = {
 type SavedPath = LearningPath & { id: string; savedAt: number };
 
 const LEVELS = ['مبتدی', 'متوسط', 'پیشرفته'] as const;
-const LANGUAGES = [
-  { value: 'mixed', label: 'فارسی و انگلیسی' },
-  { value: 'fa', label: 'فقط فارسی' },
+const LANGUAGE_OPTIONS = [
+  { value: 'fa', label: 'فارسی' },
+  { value: 'en', label: 'انگلیسی' },
+  { value: 'ar', label: 'عربی' },
+  { value: 'de', label: 'آلمانی' },
+  { value: 'fr', label: 'فرانسوی' },
 ] as const;
 const SUGGESTIONS = ['یادگیری پایتون', 'مدیریت زمان', 'نوشتن پروپوزال', 'هوش مصنوعی برای مدیران', 'رهبری تیم'];
 
@@ -61,7 +64,7 @@ function resourceLink(r: Resource, topic?: string): string {
 export default function Home() {
   const [topic, setTopic] = useState('');
   const [level, setLevel] = useState<(typeof LEVELS)[number]>('مبتدی');
-  const [language, setLanguage] = useState<string>('mixed');
+  const [languages, setLanguages] = useState<string[]>(['fa', 'en']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [path, setPath] = useState<LearningPath | null>(null);
@@ -87,7 +90,17 @@ export default function Home() {
     }
   }, []);
 
-  async function runGenerate(topicVal: string, levelVal: string, languageVal: string = language) {
+  function toggleLanguage(val: string) {
+    setLanguages((prev) => {
+      if (prev.includes(val)) {
+        const next = prev.filter((l) => l !== val);
+        return next.length ? next : prev; // never allow zero languages selected
+      }
+      return [...prev, val];
+    });
+  }
+
+  async function runGenerate(topicVal: string, levelVal: string, languagesVal: string[] = languages) {
     if (!topicVal.trim()) return;
     setLoading(true);
     setLoadingLong(false);
@@ -100,7 +113,7 @@ export default function Home() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topicVal, level: levelVal, language: languageVal }),
+        body: JSON.stringify({ topic: topicVal, level: levelVal, languages: languagesVal }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -119,7 +132,7 @@ export default function Home() {
 
   async function generatePath(e: React.FormEvent) {
     e.preventDefault();
-    await runGenerate(topic, level, language);
+    await runGenerate(topic, level, languages);
   }
 
   function savePath() {
@@ -191,21 +204,24 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="flex gap-2">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.value}
-                  type="button"
-                  onClick={() => setLanguage(l.value)}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
-                    language === l.value
-                      ? 'bg-amber text-white border-amber'
-                      : 'bg-white text-grey-700 border-grey-400/40 hover:border-amber/50'
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
+            <div>
+              <div className="text-xs text-grey-500 mb-2">زبان‌هایی که راحتی (می‌تونی چندتا انتخاب کنی)</div>
+              <div className="flex flex-wrap gap-2">
+                {LANGUAGE_OPTIONS.map((l) => (
+                  <button
+                    key={l.value}
+                    type="button"
+                    onClick={() => toggleLanguage(l.value)}
+                    className={`px-4 py-2 rounded-full text-xs font-medium border transition-colors ${
+                      languages.includes(l.value)
+                        ? 'bg-amber text-white border-amber'
+                        : 'bg-white text-grey-700 border-grey-400/40 hover:border-amber/50'
+                    }`}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}

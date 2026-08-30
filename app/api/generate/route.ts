@@ -7,9 +7,13 @@ export const maxDuration = 60;
 
 const CACHE_TTL_SECONDS = 60 * 60 * 24 * 90;
 
-function cacheKey(topic: string, level: string, language: string): string {
+const VALID_LANGS = ['fa', 'en', 'ar', 'de', 'fr'];
+const LANG_LABELS: Record<string, string> = { fa: 'فارسی', en: 'انگلیسی', ar: 'عربی', de: 'آلمانی', fr: 'فرانسوی' };
+
+function cacheKey(topic: string, level: string, languages: string[]): string {
   const normalized = topic.trim().toLowerCase().replace(/\s+/g, ' ');
-  return `masir:path:${level}:${language}:${normalized}`;
+  const langKey = [...languages].sort().join('+');
+  return `masir:path:${level}:${langKey}:${normalized}`;
 }
 
 const RATE_LIMIT_MAX = 8;
@@ -90,8 +94,11 @@ const SYSTEM_PROMPT = `تو یک متخصص طراحی مسیر یادگیری �
 
 export async function POST(req: NextRequest) {
   try {
-    const { topic, level, language } = await req.json();
-    const lang: string = ['fa', 'mixed'].includes(language) ? language : 'mixed';
+    const { topic, level, languages } = await req.json();
+    const langs: string[] = Array.isArray(languages)
+      ? languages.filter((l: any) => VALID_LANGS.includes(l))
+      : [];
+    const validLangs = langs.length ? langs : ['fa', 'en']; // sensible default if none/invalid sent
 
     if (!topic || typeof topic !== 'string' || topic.trim().length < 2) {
       return NextResponse.json({ error: 'موضوع رو وارد کن.' }, { status: 400 });
@@ -121,7 +128,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'کلید API روی سرور تنظیم نشده.' }, { status: 500 });
     }
 
-    const key = cacheKey(topic, level, lang);
+    const key = cacheKey(topic, level, validLangs);
     const redis = getRedis();
 
     if (redis) {
@@ -136,9 +143,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const langInstruction = lang === 'fa'
-      ? '\n\nمهم: کاربر فقط با زبان فارسی راحته. فقط منابع فارسی پیشنهاد بده؛ حتی اگه منبع انگلیسی بهتری وجود داره، پیشنهادش نده مگر معادل فارسی معتبری اصلاً وجود نداشته باشه (که در اون حالت به‌وضوح بگو این یکی استثنائاً انگلیسیه).'
-      : '';
+    const langLabels = validLangs.map((l) => LANG_LABELS[l]).join('، ');
+    const langInstruction = `\n\nمهم: کاربر فقط با این زبان‌ها راحته: ${langLabels}. فقط منابعی به این زبان‌ها پیشنهاد بده. اگه هیچ منبع خوبی به این زبان‌ها پیدا نمی‌کنی برای یه بخش خاص، به‌جاش نوع منبع رو توصیف کن ولی زبانی خارج از این لیست پیشنهاد نده.`;
     const userMessage = `موضوع: ${topic.trim()}\nسطح: ${level}${langInstruction}`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
