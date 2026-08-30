@@ -7,9 +7,9 @@ export const maxDuration = 60;
 
 const CACHE_TTL_SECONDS = 60 * 60 * 24 * 90;
 
-function cacheKey(topic: string, level: string): string {
+function cacheKey(topic: string, level: string, language: string): string {
   const normalized = topic.trim().toLowerCase().replace(/\s+/g, ' ');
-  return `masir:path:${level}:${normalized}`;
+  return `masir:path:${level}:${language}:${normalized}`;
 }
 
 const RATE_LIMIT_MAX = 8;
@@ -90,7 +90,8 @@ const SYSTEM_PROMPT = `تو یک متخصص طراحی مسیر یادگیری �
 
 export async function POST(req: NextRequest) {
   try {
-    const { topic, level } = await req.json();
+    const { topic, level, language } = await req.json();
+    const lang: string = ['fa', 'mixed'].includes(language) ? language : 'mixed';
 
     if (!topic || typeof topic !== 'string' || topic.trim().length < 2) {
       return NextResponse.json({ error: 'موضوع رو وارد کن.' }, { status: 400 });
@@ -120,7 +121,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'کلید API روی سرور تنظیم نشده.' }, { status: 500 });
     }
 
-    const key = cacheKey(topic, level);
+    const key = cacheKey(topic, level, lang);
     const redis = getRedis();
 
     if (redis) {
@@ -135,7 +136,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const userMessage = `موضوع: ${topic.trim()}\nسطح: ${level}`;
+    const langInstruction = lang === 'fa'
+      ? '\n\nمهم: کاربر فقط با زبان فارسی راحته. فقط منابع فارسی پیشنهاد بده؛ حتی اگه منبع انگلیسی بهتری وجود داره، پیشنهادش نده مگر معادل فارسی معتبری اصلاً وجود نداشته باشه (که در اون حالت به‌وضوح بگو این یکی استثنائاً انگلیسیه).'
+      : '';
+    const userMessage = `موضوع: ${topic.trim()}\nسطح: ${level}${langInstruction}`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

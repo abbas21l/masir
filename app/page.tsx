@@ -21,6 +21,10 @@ type LearningPath = {
 type SavedPath = LearningPath & { id: string; savedAt: number };
 
 const LEVELS = ['مبتدی', 'متوسط', 'پیشرفته'] as const;
+const LANGUAGES = [
+  { value: 'mixed', label: 'فارسی و انگلیسی' },
+  { value: 'fa', label: 'فقط فارسی' },
+] as const;
 const SUGGESTIONS = ['یادگیری پایتون', 'مدیریت زمان', 'نوشتن پروپوزال', 'هوش مصنوعی برای مدیران', 'رهبری تیم'];
 
 // If a resource doesn't have a real, verified url (true for most AI-generated
@@ -57,6 +61,7 @@ function resourceLink(r: Resource, topic?: string): string {
 export default function Home() {
   const [topic, setTopic] = useState('');
   const [level, setLevel] = useState<(typeof LEVELS)[number]>('مبتدی');
+  const [language, setLanguage] = useState<string>('mixed');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [path, setPath] = useState<LearningPath | null>(null);
@@ -82,7 +87,7 @@ export default function Home() {
     }
   }, []);
 
-  async function runGenerate(topicVal: string, levelVal: string) {
+  async function runGenerate(topicVal: string, levelVal: string, languageVal: string = language) {
     if (!topicVal.trim()) return;
     setLoading(true);
     setLoadingLong(false);
@@ -95,7 +100,7 @@ export default function Home() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topicVal, level: levelVal }),
+        body: JSON.stringify({ topic: topicVal, level: levelVal, language: languageVal }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -114,7 +119,7 @@ export default function Home() {
 
   async function generatePath(e: React.FormEvent) {
     e.preventDefault();
-    await runGenerate(topic, level);
+    await runGenerate(topic, level, language);
   }
 
   function savePath() {
@@ -182,6 +187,23 @@ export default function Home() {
                   }`}
                 >
                   {l}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              {LANGUAGES.map((l) => (
+                <button
+                  key={l.value}
+                  type="button"
+                  onClick={() => setLanguage(l.value)}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+                    language === l.value
+                      ? 'bg-amber text-white border-amber'
+                      : 'bg-white text-grey-700 border-grey-400/40 hover:border-amber/50'
+                  }`}
+                >
+                  {l.label}
                 </button>
               ))}
             </div>

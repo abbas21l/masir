@@ -5,9 +5,9 @@ import { SEED_PATHS } from './seedData';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-function cacheKey(topic: string, level: string): string {
+function cacheKey(topic: string, level: string, language: string = 'mixed'): string {
   const normalized = topic.trim().toLowerCase().replace(/\s+/g, ' ');
-  return `masir:path:${level}:${normalized}`;
+  return `masir:path:${level}:${language}:${normalized}`;
 }
 
 const CACHE_TTL_SECONDS = 60 * 60 * 24 * 365;
