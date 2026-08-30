@@ -264,6 +264,18 @@ export default function Home() {
               </div>
             </div>
           )}
+
+          <div className="mt-16 pt-10 border-t border-grey-400/20">
+            <h2 className="text-lg font-bold mb-4">مسیر چطور کار می‌کنه؟</h2>
+            <p className="text-sm text-grey-700 leading-loose mb-4">
+              مسیر یه ابزار رایگانه که برای هر موضوعی که بخوای یاد بگیری — از برنامه‌نویسی گرفته تا مهارت‌های مدیریتی و زبان — یه برنامه‌ی یادگیری واقعی و قابل‌اجرا می‌سازه. کافیه موضوع، سطح (مبتدی تا پیشرفته)، و زبان‌هایی که باهاشون راحتی رو انتخاب کنی؛ مسیر برات چند مرحله‌ی مشخص با منابع واقعی می‌سازه، نه یه لیست کلی و آرمانی.
+            </p>
+            <p className="text-sm text-grey-700 leading-loose">
+              نیازی به ثبت‌نام نیست. هر مسیری که ساخته می‌شه توی{' '}
+              <a href="/archive" className="text-teal-dark underline">آرشیو عمومی</a> قابل‌مشاهده‌ست، و می‌تونی مسیرهای دلخواهت رو توی همین مرورگر ذخیره کنی. مسیر بخشی از{' '}
+              <a href="https://abbasramezani.com" className="text-teal-dark underline">abbasramezani.com</a> است.
+            </p>
+          </div>
         </section>
       )}
 
