@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRedis } from '../../lib/redis';
+import { isInappropriate } from '../../lib/moderation';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -56,6 +57,7 @@ const SYSTEM_PROMPT = `تو یک متخصص طراحی مسیر یادگیری �
 - تعداد مراحل بین ۵ تا ۸ مرحله (بسته به موضوع).
 - از کلی‌گویی پرهیز کن. هر مرحله باید دقیق بگوید «چه چیزی» باید یاد گرفته شود و «چرا» این مرحله مهم است.
 - لحن صمیمی، واضح، تشویق‌کننده، ولی جدی و حرفه‌ای.
+- همیشه علمی و حرفه‌ای بمون. هیچ‌وقت از کلمات رکیک، جنسی، یا نامناسب استفاده نکن، حتی اگه موضوع درخواستی نامناسب بود؛ در اون حالت مؤدبانه فقط روی جنبه‌ی آموزشی و حرفه‌ای موضوع تمرکز کن.
 
 قانون حیاتی درباره‌ی منابع (این را دقیق رعایت کن):
 هرگز اسم یک دوره، کتاب، یا مقاله‌ی خاص را با ادعای «این دقیقاً وجود دارد» نیاور، چون نمی‌توانی از وجود دقیق آن مطمئن باشی و لینک/عنوان اشتباه اعتبار کل ابزار را خدشه‌دار می‌کند.
@@ -95,6 +97,13 @@ export async function POST(req: NextRequest) {
     }
     if (!['مبتدی', 'متوسط', 'پیشرفته'].includes(level)) {
       return NextResponse.json({ error: 'سطح نامعتبره.' }, { status: 400 });
+    }
+
+    if (isInappropriate(topic)) {
+      return NextResponse.json(
+        { error: 'این ابزار برای موضوعات آموزشی و حرفه‌ایه. لطفاً یه موضوع مناسب بنویس.' },
+        { status: 400 }
+      );
     }
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';

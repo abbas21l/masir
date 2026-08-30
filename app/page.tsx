@@ -63,17 +63,27 @@ export default function Home() {
   const [savedPaths, setSavedPaths] = useState<SavedPath[]>([]);
   const [openStep, setOpenStep] = useState<number | null>(0);
   const [loadingLong, setLoadingLong] = useState(false);
+  const [saveConfirmed, setSaveConfirmed] = useState(false);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem('masir-saved-paths');
       if (raw) setSavedPaths(JSON.parse(raw));
     } catch {}
+
+    // If coming from /archive with ?topic=&level=, auto-load that path.
+    const params = new URLSearchParams(window.location.search);
+    const urlTopic = params.get('topic');
+    const urlLevel = params.get('level');
+    if (urlTopic && urlLevel && LEVELS.includes(urlLevel as any)) {
+      setTopic(urlTopic);
+      setLevel(urlLevel as (typeof LEVELS)[number]);
+      runGenerate(urlTopic, urlLevel);
+    }
   }, []);
 
-  async function generatePath(e: React.FormEvent) {
-    e.preventDefault();
-    if (!topic.trim()) return;
+  async function runGenerate(topicVal: string, levelVal: string) {
+    if (!topicVal.trim()) return;
     setLoading(true);
     setLoadingLong(false);
     setError('');
@@ -85,7 +95,7 @@ export default function Home() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, level }),
+        body: JSON.stringify({ topic: topicVal, level: levelVal }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -102,12 +112,19 @@ export default function Home() {
     }
   }
 
+  async function generatePath(e: React.FormEvent) {
+    e.preventDefault();
+    await runGenerate(topic, level);
+  }
+
   function savePath() {
     if (!path) return;
     const entry: SavedPath = { ...path, id: crypto.randomUUID(), savedAt: Date.now() };
     const updated = [entry, ...savedPaths];
     setSavedPaths(updated);
     localStorage.setItem('masir-saved-paths', JSON.stringify(updated));
+    setSaveConfirmed(true);
+    setTimeout(() => setSaveConfirmed(false), 3000);
   }
 
   function removeSaved(id: string) {
@@ -130,7 +147,7 @@ export default function Home() {
           <img src="/logo.svg" alt="مسیر" width="32" height="32" />
           <span className="font-bold text-lg">مسیر</span>
         </button>
-        <span className="text-xs text-grey-500">ساخته‌ی عباس رمضانی</span>
+        <a href="/archive" className="text-xs text-teal-dark hover:underline">آرشیو عمومی</a>
       </header>
 
       {!path && !loading && (
@@ -300,7 +317,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex gap-3 mt-10">
+          <div className="flex gap-3 mt-10 items-center">
             <button onClick={savePath} className="flex-1 py-3.5 rounded-xl bg-teal text-white font-bold text-sm hover:bg-teal-dark transition-colors">
               ذخیره کن
             </button>
@@ -308,6 +325,11 @@ export default function Home() {
               مسیر جدید
             </button>
           </div>
+          {saveConfirmed && (
+            <div className="text-center text-sm text-teal-dark mt-3 fade-up">
+              ✓ ذخیره شد — توی صفحه‌ی اصلی، بخش «مسیرهای ذخیره‌شده» پیداش می‌کنی.
+            </div>
+          )}
         </section>
       )}
 
