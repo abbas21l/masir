@@ -10,10 +10,10 @@ const CACHE_TTL_SECONDS = 60 * 60 * 24 * 90;
 const VALID_LANGS = ['fa', 'en', 'ar', 'de', 'fr'];
 const LANG_LABELS: Record<string, string> = { fa: 'فارسی', en: 'انگلیسی', ar: 'عربی', de: 'آلمانی', fr: 'فرانسوی' };
 
-function cacheKey(topic: string, level: string, languages: string[]): string {
+function cacheKey(topic: string, level: string, languages: string[], mode: string): string {
   const normalized = topic.trim().toLowerCase().replace(/\s+/g, ' ');
   const langKey = [...languages].sort().join('+');
-  return `masir:path:${level}:${langKey}:${normalized}`;
+  return `masir:path:${mode}:${level}:${langKey}:${normalized}`;
 }
 
 const RATE_LIMIT_MAX = 8;
@@ -92,9 +92,43 @@ const SYSTEM_PROMPT = `تو یک متخصص طراحی مسیر یادگیری �
   "final_note": "یک توصیه‌ی کاربردی و انگیزشی کوتاه برای ادامه‌ی مسیر"
 }`;
 
+const CAREER_SYSTEM_PROMPT = `تو یک مشاور مسیر شغلی هستی که برای کاربران فارسی‌زبان، مسیر واقعی و عملی برای تغییر یا پیشرفت شغلی طراحی می‌کنی — نه یادگیری یک مهارت تنها، بلکه کل مسیر حرفه‌ای از یک جایگاه به جایگاه دیگر.
+
+قوانین مهم:
+- همیشه به زبان فارسی پاسخ بده.
+- مسیر باید واقع‌بینانه باشد؛ بگو معمولاً چقدر زمان می‌برد، چه پیش‌نیازهایی لازمه، و چه چالش‌هایی واقعاً پیش میاد.
+- تعداد مراحل بین ۵ تا ۸ مرحله.
+- مراحل باید ترکیبی از این‌ها باشن (نه فقط یادگیری فنی): ارزیابی شکاف مهارتی بین جایگاه فعلی و هدف، کسب مهارت/مدرک/تجربه‌ی لازم، ساخت نمونه‌کار یا سابقه‌ی قابل‌نمایش، شبکه‌سازی و ارتباط با افراد اون حوزه، نحوه‌ی بازآرایی رزومه/معرفی خود برای جایگاه جدید، و در صورت لزوم گام‌های میانی (جایگاه‌های واسط بین مبدأ و مقصد).
+- لحن واقع‌بین، مستقیم، حرفه‌ای — نه شعاری و انگیزشی صرف. اگه مسیر سخته یا زمان‌بره، صادقانه بگو.
+- همیشه علمی و حرفه‌ای بمون. هیچ‌وقت از کلمات رکیک یا نامناسب استفاده نکن.
+
+قانون درباره‌ی منابع: مثل قانون بالا — هرگز ادعای وجود قطعی یه دوره یا منبع خاص رو نکن؛ فقط نوع منبع یا پلتفرم رو نام ببر.
+
+خروجی را دقیقاً با همون ساختار JSON زیر بده (بدون متن اضافه، بدون markdown code fence):
+
+{
+  "topic": "از [جایگاه مبدأ] به [جایگاه مقصد]",
+  "level": "مبتدی یا متوسط یا پیشرفته",
+  "goal": "یک جمله درباره‌ی هدف نهایی این تغییر مسیر شغلی",
+  "steps": [
+    {
+      "title": "عنوان مرحله",
+      "goal": "هدف این مرحله در یک جمله",
+      "what_to_learn": "چه مهارت، مدرک، یا تجربه‌ای باید کسب بشه",
+      "why_it_matters": "چرا این مرحله برای این تغییر مسیر شغلی مهمه",
+      "resources": [
+        {"name": "توصیف منبع", "type": "نوع منبع", "language": "فارسی یا انگلیسی"}
+      ],
+      "expected_outcome": "بعد از این مرحله چه چیزی عوض شده"
+    }
+  ],
+  "final_note": "یک توصیه‌ی واقع‌بینانه درباره‌ی این تغییر مسیر شغلی، شامل چالش‌های واقعی که باید انتظارشو داشت"
+}`;
+
 export async function POST(req: NextRequest) {
   try {
-    const { topic, level, languages } = await req.json();
+    const { topic, level, languages, mode } = await req.json();
+    const isCareerMode = mode === 'career';
     const langs: string[] = Array.isArray(languages)
       ? languages.filter((l: any) => VALID_LANGS.includes(l))
       : [];
@@ -128,7 +162,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'کلید API روی سرور تنظیم نشده.' }, { status: 500 });
     }
 
-    const key = cacheKey(topic, level, validLangs);
+    const key = cacheKey(topic, level, validLangs, isCareerMode ? 'career' : 'skill');
     const redis = getRedis();
 
     if (redis) {
@@ -157,7 +191,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: 'claude-sonnet-5',
         max_tokens: 4000,
-        system: SYSTEM_PROMPT,
+        system: isCareerMode ? CAREER_SYSTEM_PROMPT : SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userMessage }],
       }),
     });

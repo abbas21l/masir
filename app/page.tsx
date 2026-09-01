@@ -62,7 +62,10 @@ function resourceLink(r: Resource, topic?: string): string {
 }
 
 export default function Home() {
+  const [mode, setMode] = useState<'skill' | 'career'>('skill');
   const [topic, setTopic] = useState('');
+  const [fromRole, setFromRole] = useState('');
+  const [toRole, setToRole] = useState('');
   const [level, setLevel] = useState<(typeof LEVELS)[number]>('مبتدی');
   const [languages, setLanguages] = useState<string[]>(['fa', 'en']);
   const [loading, setLoading] = useState(false);
@@ -106,7 +109,7 @@ export default function Home() {
     });
   }
 
-  async function runGenerate(topicVal: string, levelVal: string, languagesVal: string[] = languages) {
+  async function runGenerate(topicVal: string, levelVal: string, languagesVal: string[] = languages, modeVal: string = mode) {
     if (!topicVal.trim()) return;
     setLoading(true);
     setLoadingLong(false);
@@ -119,7 +122,7 @@ export default function Home() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topicVal, level: levelVal, languages: languagesVal }),
+        body: JSON.stringify({ topic: topicVal, level: levelVal, languages: languagesVal, mode: modeVal }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -138,7 +141,8 @@ export default function Home() {
 
   async function generatePath(e: React.FormEvent) {
     e.preventDefault();
-    await runGenerate(topic, level, languages);
+    const effectiveTopic = mode === 'career' ? `از ${fromRole.trim()} به ${toRole.trim()}` : topic;
+    await runGenerate(effectiveTopic, level, languages, mode);
   }
 
   function savePath() {
@@ -176,22 +180,65 @@ export default function Home() {
 
       {!path && !loading && (
         <section className="max-w-xl mx-auto px-5 pt-10 pb-20 fade-up">
+          <div className="flex gap-2 mb-6">
+            <button
+              type="button"
+              onClick={() => setMode('skill')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                mode === 'skill' ? 'bg-ink text-white border-ink' : 'bg-white text-grey-700 border-grey-400/40'
+              }`}
+            >
+              یادگیری مهارت
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('career')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                mode === 'career' ? 'bg-ink text-white border-ink' : 'bg-white text-grey-700 border-grey-400/40'
+              }`}
+            >
+              تغییر مسیر شغلی
+            </button>
+          </div>
+
           <h1 className="text-2xl md:text-3xl font-bold leading-relaxed mb-3">
-            چی می‌خوای یاد بگیری؟
+            {mode === 'skill' ? 'چی می‌خوای یاد بگیری؟' : 'می‌خوای به کجا برسی؟'}
           </h1>
           <p className="text-grey-500 text-sm mb-8 leading-relaxed">
-            یه موضوع بنویس، سطحت رو انتخاب کن. یه مسیر واقعی و قابل‌اجرا می‌سازیم، نه یه لیست کلی و آرمانی.
+            {mode === 'skill'
+              ? 'یه موضوع بنویس، سطحت رو انتخاب کن. یه مسیر واقعی و قابل‌اجرا می‌سازیم، نه یه لیست کلی و آرمانی.'
+              : 'جایگاه فعلی و جایگاهی که می‌خوای بهش برسی رو بنویس. یه مسیر واقع‌بینانه می‌سازیم، با چالش‌های واقعی‌اش.'}
           </p>
 
           <form onSubmit={generatePath} className="space-y-5">
-            <input
-              type="text"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="مثلاً: یادگیری پایتون، مدیریت زمان، نوشتن پروپوزال..."
-              className="w-full px-5 py-4 rounded-2xl border border-grey-400/40 bg-white text-base focus:border-teal outline-none"
-              autoFocus
-            />
+            {mode === 'skill' ? (
+              <input
+                type="text"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="مثلاً: یادگیری پایتون، مدیریت زمان، نوشتن پروپوزال..."
+                className="w-full px-5 py-4 rounded-2xl border border-grey-400/40 bg-white text-base focus:border-teal outline-none"
+                autoFocus
+              />
+            ) : (
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={fromRole}
+                  onChange={(e) => setFromRole(e.target.value)}
+                  placeholder="جایگاه فعلی — مثلاً: حسابداری"
+                  className="w-full px-5 py-4 rounded-2xl border border-grey-400/40 bg-white text-base focus:border-teal outline-none"
+                  autoFocus
+                />
+                <input
+                  type="text"
+                  value={toRole}
+                  onChange={(e) => setToRole(e.target.value)}
+                  placeholder="جایگاه هدف — مثلاً: مدیریت مالی"
+                  className="w-full px-5 py-4 rounded-2xl border border-grey-400/40 bg-white text-base focus:border-teal outline-none"
+                />
+              </div>
+            )}
 
             <div className="flex gap-2">
               {LEVELS.map((l) => (
@@ -234,7 +281,7 @@ export default function Home() {
 
             <button
               type="submit"
-              disabled={!topic.trim()}
+              disabled={mode === 'skill' ? !topic.trim() : !fromRole.trim() || !toRole.trim()}
               className="w-full py-4 rounded-2xl bg-teal text-white font-bold text-base hover:bg-teal-dark transition-colors disabled:opacity-40"
             >
               مسیرم رو بساز ←
