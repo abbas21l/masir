@@ -72,6 +72,7 @@ export default function Home() {
   const [openStep, setOpenStep] = useState<number | null>(0);
   const [loadingLong, setLoadingLong] = useState(false);
   const [saveConfirmed, setSaveConfirmed] = useState(false);
+  const [qafaseItems, setQafaseItems] = useState<any[]>([]);
 
   useEffect(() => {
     try {
@@ -88,6 +89,11 @@ export default function Home() {
       setLevel(urlLevel as (typeof LEVELS)[number]);
       runGenerate(urlTopic, urlLevel);
     }
+
+    fetch('/api/qafase')
+      .then((r) => r.json())
+      .then((data) => setQafaseItems(data.items || []))
+      .catch(() => {});
   }, []);
 
   function toggleLanguage(val: string) {
@@ -276,6 +282,32 @@ export default function Home() {
               <a href="https://abbasramezani.com" className="text-teal-dark underline">abbasramezani.com</a> است.
             </p>
           </div>
+
+          {qafaseItems.length > 0 && (
+            <div className="mt-16 pt-10 border-t border-grey-400/20">
+              <h2 className="text-lg font-bold mb-1">مطالب پیشنهادی برای یادگیری</h2>
+              <p className="text-xs text-grey-500 mb-5">از قفسه‌ی abbasramezani.com</p>
+              <div className="space-y-3">
+                {qafaseItems.slice(0, 5).map((item: any, i: number) => {
+                  const title = item.title || item.fa_title || item.translated_title || 'بدون عنوان';
+                  const url = item.url || item.source_url || item.link || '#';
+                  const source = item.source_name || item.source || '';
+                  return (
+                    <a
+                      key={i}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block bg-white border border-grey-400/30 rounded-xl px-4 py-3 hover:border-teal/50 transition-colors"
+                    >
+                      <div className="text-sm font-medium">{title}</div>
+                      {source && <div className="text-xs text-grey-400 mt-1">{source}</div>}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
