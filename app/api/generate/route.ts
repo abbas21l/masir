@@ -159,9 +159,6 @@ export async function POST(req: NextRequest) {
     }
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: 'کلید API روی سرور تنظیم نشده.' }, { status: 500 });
-    }
 
     const key = cacheKey(topic, level, validLangs, isCareerMode ? 'career' : 'skill');
     const redis = getRedis();
@@ -181,29 +178,70 @@ export async function POST(req: NextRequest) {
     const langLabels = validLangs.map((l) => LANG_LABELS[l]).join('، ');
     const langInstruction = `\n\nمهم: کاربر فقط با این زبان‌ها راحته: ${langLabels}. فقط منابعی به این زبان‌ها پیشنهاد بده. اگه هیچ منبع خوبی به این زبان‌ها پیدا نمی‌کنی برای یه بخش خاص، به‌جاش نوع منبع رو توصیف کن ولی زبانی خارج از این لیست پیشنهاد نده.`;
     const userMessage = `موضوع: ${topic.trim()}\nسطح: ${level}${langInstruction}`;
+    const systemPrompt = isCareerMode ? CAREER_SYSTEM_PROMPT : SYSTEM_PROMPT;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 4000,
-        system: isCareerMode ? CAREER_SYSTEM_PROMPT : SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: userMessage }],
-      }),
-    });
+    // Support two backends:
+    // 1) ArvanCloud AI Gateway (OpenAI-compatible /chat/completions) — used
+    //    when ARVAN_ENDPOINT is set. Useful when billing Anthropic directly
+    //    isn't practical.
+    // 2) Direct Anthropic API (default / fallback) — original behavior.
+    const arvanEndpoint = process.env.ARVAN_ENDPOINT; // e.g. https://api.arvancloudai.ir/xxxx
+    const arvanKey = process.env.ARVAN_API_KEY;
+    const arvanModel = process.env.ARVAN_MODEL_NAME; // exact model name shown in Arvan panel
 
-    if (!response.ok) {
-      const errText = await response.text();
-      return NextResponse.json({ error: `خطای API: ${errText}` }, { status: 502 });
+    let rawText = '';
+
+    if (arvanEndpoint && arvanKey && arvanModel) {
+      const url = arvanEndpoint.replace(/\/+$/, '') + '/chat/completions';
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `apikey ${arvanKey}`,
+        },
+        body: JSON.stringify({
+          model: arvanModel,
+          max_tokens: 4000,
+          temperature: 0.7,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        return NextResponse.json({ error: `خطای API (آروان‌کلود): ${errText}` }, { status: 502 });
+      }
+      const data = await response.json();
+      rawText = data.choices?.[0]?.message?.content ?? '';
+    } else {
+      if (!apiKey) {
+        return NextResponse.json({ error: 'کلید API روی سرور تنظیم نشده.' }, { status: 500 });
+      }
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-5',
+          max_tokens: 4000,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMessage }],
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        return NextResponse.json({ error: `خطای API: ${errText}` }, { status: 502 });
+      }
+      const data = await response.json();
+      rawText = data.content?.find((b: any) => b.type === 'text')?.text ?? '';
     }
-
-    const data = await response.json();
-    const rawText = data.content?.find((b: any) => b.type === 'text')?.text ?? '';
 
     const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
 
